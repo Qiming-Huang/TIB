@@ -1,0 +1,111 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="TIB, NeurIPS 2026: explore uncertainty-aware multimodal attribution, compare aligned and misaligned pairs, and understand the bottleneck parameters.">
+  <meta name="theme-color" content="#ffffff">
+  <title>TIB — Attribution beyond alignment | NeurIPS 2026</title>
+  <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="styles.css">
+  <script src="math.js" defer></script>
+  <script src="app.js" defer></script>
+</head>
+<body>
+  <a class="skip-link" href="#main">Skip to content</a>
+  <header class="site-header">
+    <div class="nav-shell">
+      <a href="#" class="wordmark" aria-label="TIB home">TIB</a>
+      <button class="menu-toggle" id="menu-toggle" aria-expanded="false" aria-controls="navigation" aria-label="Toggle navigation">Menu <span aria-hidden="true">☰</span></button>
+      <nav id="navigation" aria-label="Main navigation">
+        <a href="#abstract">Abstract</a><a href="#idea">Method</a><a href="#comparison">Comparison</a><a href="#playground">Parameters</a><a href="#resources">BibTeX</a>
+      </nav>
+    </div>
+  </header>
+  <main id="main">
+    <section class="hero section-shell">
+      <div class="hero-copy">
+        <h1>TIB: Sample-wise Tempered Information Bottleneck for Multimodal Attribution beyond Alignment Assumption</h1>
+        <div class="author-line"><a href="https://qiming-huang.github.io/" target="_blank" rel="noopener">Qiming Huang</a><span>Peixi Liu</span><a href="https://jianbojiao.com/" target="_blank" rel="noopener">Jianbo Jiao</a></div>
+        <p class="affiliation"><a href="https://mix.jianbojiao.com/" target="_blank" rel="noopener">MIx Group</a> · University of Birmingham</p>
+        <p class="conference">NeurIPS 2026</p>
+        <div class="hero-actions"><a class="button" href="">Paper</a><a class="button" href="">Code</a><a class="button" href="">Interactive demo</a><a class="button" href="">BibTeX</a></div>
+      </div>
+    </section>
+
+    <figure class="teaser section-shell"><img src="assets/attribution-comparison.png" alt="Paper comparison of TIB, NIB, M2IB, Grad-CAM, Fast-IG, and Chefer on aligned and misaligned image–text pairs" width="2059" height="720"><figcaption><strong>Attribution under semantic misalignment.</strong> The image is unchanged, while its caption switches from describing the scene to an unrelated bicycle race. TIB shows a weaker response for the mismatched pair in this paper example. <a href="#comparison">Explore the comparison below.</a></figcaption></figure>
+
+    <section class="abstract-section section-shell" id="abstract"><h2>Abstract</h2><p>Multimodal attribution often uses one modality as proxy supervision to explain another, implicitly assuming semantic alignment between paired inputs. In realistic image–text data, this assumption can fail. We analyze how standard information bottleneck objectives allocate explanatory capacity to spurious cross-modal dependencies, producing forced and over-confident explanations. We introduce <strong>TIB</strong>, a sample-wise Tempered Information Bottleneck that jointly learns a feature retention mask and a scalar predictive variance. This input-dependent uncertainty adapts fitting pressure to cross-modal reliability, while a separate compression term regulates retained information. The paper evaluates this mechanism on controlled misalignment benchmarks and real-world multimodal datasets.</p></section>
+
+    <section class="section-shell idea-section" id="idea">
+      <div class="section-heading"><p class="eyebrow">Method overview</p><h2>Explain what’s there.<br><em>Account for what isn’t.</em></h2><p>When one modality explains another, the paired input becomes proxy supervision. If that supervision is unreliable, a fixed fitting pressure can produce a forced explanation.</p></div>
+      <div class="idea-grid">
+        <article class="idea-card"><span class="idea-index">01</span><h3>Keep the backbone frozen.</h3><p>Capture intermediate image or text features from a pretrained vision–language encoder. Learn a bottleneck for this single pair.</p><div class="mini-flow"><span>Image / text</span><span aria-hidden="true">→</span><span class="flow-emphasis">Frozen encoder</span></div></article>
+        <article class="idea-card"><span class="idea-index">02</span><h3>Learn what to retain.</h3><p>A feature-wise mask <strong>h</strong> preserves useful information. A sample-wise variance <strong>σ²</strong> controls how much noise replaces suppressed features.</p><div class="mini-flow"><span class="flow-emphasis">Mask h</span><span aria-hidden="true">+</span><span class="flow-coral">Variance σ²</span></div></article>
+        <article class="idea-card"><span class="idea-index">03</span><h3>Adapt the fitting pressure.</h3><p>Tempered likelihood weighting makes the fitting term sensitive to predicted variance. A separate KL term charges for retained information.</p><div class="mini-flow"><span>Reliability</span><span aria-hidden="true">→</span><span class="flow-emphasis">Attribution</span></div></article>
+      </div>
+      <div class="equation-strip"><span class="tiny-label">The stochastic bottleneck · Eq. 8</span><p>z = <span class="equation-indigo">h ⊙ f</span> + <span class="equation-coral">σ (1 − h) ⊙ ε</span></p><span class="equation-note">retained features + uncertainty-aware noise<br>ε ∼ N(0, I)</span></div>
+    </section>
+
+    <section class="comparison-section" id="comparison">
+      <div class="section-shell">
+        <div class="section-heading heading-inline"><div><h2>Aligned and misaligned pairs</h2></div><p>Switch the caption and comparison method to inspect the paper visualizations on the same image.</p></div>
+        <div class="comparison-toolbar">
+          <div class="segmented" role="group" aria-label="Choose image–text alignment"><button class="is-active" id="pair-aligned" aria-pressed="true" data-pair-button="aligned"><span class="pair-dot aligned-dot"></span>Aligned</button><button id="pair-misaligned" aria-pressed="false" data-pair-button="misaligned"><span class="pair-dot misaligned-dot"></span>Misaligned</button></div>
+          <label class="method-select">Compare with <select id="baseline"><option value="m2ib">M2IB</option><option value="nib">NIB</option><option value="gradcam">Grad-CAM</option><option value="fastig">Fast-IG</option><option value="chefer">Chefer</option></select></label>
+        </div>
+        <div class="caption-banner" id="caption-banner"><span class="alignment-label aligned" id="pair-status">Aligned pair</span><p id="comparison-caption">“A man with four running dogs in nature.”</p><span class="caption-hint">The caption describes the scene.</span></div>
+        <div class="comparison-grid">
+          <figure class="comparison-card"><figcaption><span>Input image</span><span class="tiny-label">Unchanged</span></figcaption><div class="paper-crop" data-crop="original" data-pair="aligned"><img src="assets/attribution-comparison.png" alt="Original image of a person with four dogs"></div><p>The same visual input for both captions.</p></figure>
+          <figure class="comparison-card tib-card"><figcaption><span>TIB</span><span class="method-badge">Ours</span></figcaption><div class="paper-crop" id="tib-map" data-crop="tib" data-pair="aligned"><img src="assets/attribution-comparison.png" alt="TIB image attribution with an aligned caption"></div><p id="tib-observation">The paper example highlights the person and dogs under aligned supervision.</p></figure>
+          <figure class="comparison-card"><figcaption><span id="baseline-title">M2IB</span><span class="tiny-label">Comparison</span></figcaption><div class="paper-crop" id="baseline-map" data-crop="m2ib" data-pair="aligned"><img src="assets/attribution-comparison.png" alt="M2IB image attribution with an aligned caption"></div><p id="baseline-observation">A fixed-variance information bottleneck, shown on the same input.</p></figure>
+        </div>
+        <div class="comparison-footnote"><p><span class="paper-label">Paper figure</span> These are fixed visualizations from the supplied figure. Parameter changes below do not regenerate them.</p><a class="text-link" href="assets/attribution-comparison.png" target="_blank" rel="noopener">View full figure <span aria-hidden="true">↗</span></a></div>
+        <div class="takeaway"><p id="comparison-takeaway">A meaningful caption can support a meaningful explanation. The challenge is what happens when that correspondence disappears.</p></div>
+      </div>
+    </section>
+
+    <section class="section-shell playground-section" id="playground">
+      <div class="section-heading heading-inline"><div><p class="eyebrow">Interactive mechanism explorer</p><h2>A few parameters.<br><em>Different responsibilities.</em></h2></div><p>This scalar illustration follows the implemented equations, with feature f = 1 and target dimension d = 1. Adjust a control to inspect its effect.</p></div>
+      <div class="playground-grid">
+        <div class="control-panel">
+          <div class="panel-title"><h3>Mechanism explorer</h3><button class="reset-button" id="reset-lab">Reset <span aria-hidden="true">↺</span></button></div>
+          <p class="control-intro">Controls explain the mechanism. They do not train a vision–language model in your browser.</p>
+          <label class="range-control" for="beta"><span><strong>β</strong> Compression weight <output id="beta-value" for="beta">0.10</output></span><input id="beta" type="range" min="0" max="1" step="0.01" value="0.1"><small>Watch the compression bar change. At a fixed mask and variance, β does not change the distribution.</small></label>
+          <label class="range-control" for="alpha"><span><strong>α</strong> Tempering exponent <output id="alpha-value" for="alpha">0.50</output></span><input id="alpha" type="range" min="0" max="1" step="0.01" value="0.5"><small>Watch the variance-sensitivity curve change. At σ² = 1, the current coefficient stays at 1 for every α.</small></label>
+          <label class="range-control" for="log-variance"><span><strong>σ²</strong> Predicted variance <output id="log-variance-value" for="log-variance">1.00</output></span><input id="log-variance" type="range" min="-3" max="3" step="0.02" value="0"><small>A learned quantity, manually varied here. Larger values increase injected noise at fixed h.</small></label>
+          <label class="range-control" for="mask-logit"><span><strong>h</strong> Retention mask <output id="mask-logit-value" for="mask-logit">0.50</output></span><input id="mask-logit" type="range" min="-4" max="4" step="0.05" value="0"><small>h = sigmoid(mask logit). Near 1 keeps the feature; near 0 replaces it with noise.</small></label>
+          <label class="range-control" for="residual"><span><strong>r</strong> Fitting residual <output id="residual-value" for="residual">0.25</output></span><input id="residual" type="range" min="0" max="2" step="0.01" value="0.25"><small>Watch the fitting bar change. r = 1 − cosine similarity is held independently of z in this illustration.</small></label>
+          <label class="range-control" for="sample-count"><span><strong>K</strong> Monte Carlo samples <output id="sample-count-value" for="sample-count">5</output></span><input id="sample-count" type="range" min="1" max="64" step="1" value="5"><small>Changes the displayed sample count, not the underlying distribution.</small></label>
+        </div>
+          <div class="objective-panel"><div class="panel-title"><div><p class="tiny-label">Eq. 6 / Tempered objective</p><h3>Which pressure changes?</h3></div></div><p class="objective-equation"><span class="equation-indigo">sg[(σ²)<sup>α</sup>] · [½ log σ² + r / σ²]</span> + <span class="equation-coral">β · KL</span></p>
+            <div class="loss-visualization"><p class="tiny-label">Loss contributions · β changes compression; r changes fitting</p><svg id="loss-chart" viewBox="0 0 520 145" role="img" aria-label="Signed contributions of fitting, variance normalization, and compression to the scalar objective"></svg></div>
+            <div class="sensitivity-visualization"><p class="tiny-label">Variance sensitivity · α changes the slope</p><svg id="sensitivity-chart" viewBox="0 0 520 155" role="img" aria-label="Direct fitting coefficient as a function of predicted variance"></svg><div class="sensitivity-help"><span>Every curve meets at σ² = 1.</span><button class="text-button" id="try-variance">Try σ² ≈ 4</button></div></div>
+            <div class="objective-stats"><div><span>Direct fitting coefficient</span><strong id="fitting-coefficient">1.000</strong><small>(σ²)<sup>α−1</sup></small></div><div><span>KL to N(0, 1)</span><strong id="kl-value">0.443</strong><small>Unweighted capacity</small></div></div><div class="loss-parts"><div><span>Weighted likelihood</span><strong id="likelihood-value">0.250</strong></div><div><span>Compression penalty β · KL</span><strong id="compression-value">0.044</strong></div><div class="total-loss"><span>Total illustration loss</span><strong id="total-loss">0.294</strong></div></div><p class="mechanism-note" id="mechanism-note">At σ² = 1, the direct fitting coefficient is 1 for every α.</p><p class="small-note">sg means stop-gradient: the stabilizing weight is detached. The variance still affects the likelihood, noise, and KL. These plots show the objective at fixed h and σ², not an optimization run.</p></div>
+          <div class="distribution-panel"><div class="panel-title"><div><p class="tiny-label">Eq. 8 / Stochastic representation</p><h3>What reaches the next layer?</h3></div><span class="live-badge"><span class="status-dot"></span> Live</span></div><canvas id="distribution-chart" role="img" aria-label="Gaussian bottleneck distribution and Monte Carlo samples"></canvas><div class="chart-legend"><span><i class="legend-line"></i>q(z | x)</span><span><i class="legend-dot"></i>Monte Carlo samples</span><span><i class="legend-original"></i>Original f = 1</span></div><div class="distribution-stats"><div><span>Retained mean</span><strong id="retained-mean">0.500</strong><small>h · f</small></div><div><span>Noise std. dev.</span><strong id="noise-std">0.500</strong><small>σ · (1 − h)</small></div><div><span>Sample mean</span><strong id="sample-mean">—</strong><small>Depends on K and seed</small></div></div><div class="seed-row"><label for="sample-seed">Noise seed <input id="sample-seed" type="number" value="42" min="0" max="2147483647" step="1"></label><button class="text-button" id="resample">Resample <span aria-hidden="true">↻</span></button></div></div>
+      </div>
+    </section>
+
+    <section class="parameter-section" id="parameters"><div class="section-shell">
+      <div class="section-heading heading-inline"><div><h2>Configuration reference</h2></div><p>Explore all 19 configuration fields. Defaults come from <code>AttributionConfig</code>; the downloadable code also includes the selected CLIP ViT-B/32 branch profile.</p></div>
+      <details class="configuration-fold"><summary>Browse all 19 parameters</summary>
+      <div class="guide-toolbar"><div class="filter-tabs" role="group" aria-label="Filter parameter categories"><button class="is-active" data-filter="all" aria-pressed="true">All</button><button data-filter="objective" aria-pressed="false">Objective</button><button data-filter="bottleneck" aria-pressed="false">Bottleneck</button><button data-filter="optimization" aria-pressed="false">Optimization</button><button data-filter="sampling" aria-pressed="false">Sampling</button></div><label class="search-label"><span class="sr-only">Search parameters</span><input id="parameter-search" type="search" placeholder="Search parameters…" autocomplete="off"></label></div>
+      <div class="parameter-guide"><div class="parameter-list" id="parameter-list" role="group" aria-label="Choose a parameter"></div><article class="parameter-detail" id="parameter-detail" aria-live="polite"></article></div>
+      <p class="guide-note">Predicted σ² and the optimized mask h are learned per pair. They are distinct from configuration fields such as α, β, and the initial mask logit.</p>
+      </details>
+    </div></section>
+
+    <section class="section-shell closing-section" id="resources">
+      <h2>BibTeX</h2>
+      <div class="citation-panel"><div class="panel-title"><h3>Cite TIB</h3><button class="copy-button" id="copy-citation">Copy BibTeX</button></div><pre id="citation-text">@inproceedings{huang2026tib,
+  title     = {{TIB}: Sample-wise Tempered Information Bottleneck for Multimodal Attribution beyond Alignment Assumption},
+  author    = {Qiming Huang and Peixi Liu and Jianbo Jiao},
+  booktitle = {Advances in Neural Information Processing Systems},
+  year      = {2026}
+}</pre><a class="text-link" href="assets/tib.bib" download>Download .bib <span aria-hidden="true">↓</span></a><span id="copy-status" class="sr-only" role="status"></span></div>
+    </section>
+  </main>
+  <footer class="section-shell"><p><a href="https://mix.jianbojiao.com/" target="_blank" rel="noopener">MIx Group</a>, University of Birmingham · NeurIPS 2026</p></footer>
+  <noscript><div class="noscript-message">Enable JavaScript for the caption comparison, parameter controls, and field guide. The paper and code downloads remain available.</div></noscript>
+</body>
+</html>
