@@ -9,6 +9,8 @@
 
 TIB explains image–text models by adapting attribution strength to cross-modal reliability, allowing for semantic misalignment between paired inputs. This repository contains the standalone TIB implementation with CLIP and fixed-grid SigLIP backbones.
 
+![TIB attribution comparison on aligned and misaligned image–text pairs](assets/t_snet.png)
+
 ## Installation
 
 Requires Python 3.10+. Install from the repository root:
@@ -41,7 +43,7 @@ Each call explains one image–text pair and returns image and token scores, mas
 ## Citation
 
 ```bibtex
-@inproceedings{tib2026,
+@inproceedings{huang2026tib,
   title     = {{TIB}: Sample-wise Tempered Information Bottleneck for Multimodal Attribution beyond Alignment Assumption},
   author    = {Qiming Huang and Peixi Liu and Jianbo Jiao},
   booktitle = {Advances in Neural Information Processing Systems},
