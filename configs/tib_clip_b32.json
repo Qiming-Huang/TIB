@@ -1,0 +1,48 @@
+{
+  "schema_version": 1,
+  "model": "openai/clip-vit-base-patch32",
+  "branch_configs": {
+    "vision": {
+      "target_layer": 9,
+      "layer_position": "input",
+      "steps": 40,
+      "num_samples": 5,
+      "lr": 0.075,
+      "variance_lr": 0.0003,
+      "mask_lr_schedule": "constant",
+      "mask_lr_final_ratio": 0.1,
+      "mask_adam_beta1": 0.9,
+      "mask_adam_beta2": 0.9,
+      "mask_adam_eps": 1e-08,
+      "beta": 0.1,
+      "alpha": 0.5,
+      "mask_init": 2.0,
+      "variance_hidden_dim": 128,
+      "min_log_variance": -8.0,
+      "max_log_variance": 8.0,
+      "fitting": "cosine",
+      "seed": 42
+    },
+    "text": {
+      "target_layer": 11,
+      "layer_position": "output",
+      "steps": 30,
+      "num_samples": 5,
+      "lr": 0.3,
+      "variance_lr": 3e-05,
+      "mask_lr_schedule": "constant",
+      "mask_lr_final_ratio": 0.1,
+      "mask_adam_beta1": 0.9,
+      "mask_adam_beta2": 0.999,
+      "mask_adam_eps": 1e-08,
+      "beta": 0.01,
+      "alpha": 1.0,
+      "mask_init": 2.0,
+      "variance_hidden_dim": 128,
+      "min_log_variance": -2.0,
+      "max_log_variance": 2.0,
+      "fitting": "cosine",
+      "seed": 42
+    }
+  }
+}
