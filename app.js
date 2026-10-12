@@ -2,7 +2,6 @@
   "use strict";
   const byId = id => document.getElementById(id);
   const math = window.TIBMath;
-  window.TIBRenderMath(document.body);
   document.querySelectorAll(".hero-actions a").forEach(link => {
     if (!link.getAttribute("href")) link.setAttribute("aria-disabled", "true");
     link.addEventListener("click", event => {
@@ -82,9 +81,9 @@
   const number = value => Number(value).toFixed(3);
   function drawObjective(result, values) {
     const components = [
-      { label: "Fitting", formula: "\\(r(\\sigma^2)^{\\alpha-1}\\)", value: result.fittingContribution, color: "#2866a6" },
-      { label: "Variance term", formula: "\\(\\frac{1}{2}(\\sigma^2)^\\alpha\\log\\sigma^2\\)", value: result.normalization, color: "#8493a5" },
-      { label: "Compression", formula: "\\(\\beta\\cdot\\mathrm{KL}\\)", value: result.compression, color: "#b56b54" },
+      { label: "Fitting", formula: "r · (σ²)^(α−1)", value: result.fittingContribution, color: "#2866a6" },
+      { label: "Variance term", formula: "½ · (σ²)^α · log σ²", value: result.normalization, color: "#8493a5" },
+      { label: "Compression", formula: "β · KL", value: result.compression, color: "#b56b54" },
     ];
     const minimum = Math.min(-0.5, ...components.map(component => component.value));
     const maximum = Math.max(1, ...components.map(component => component.value));
@@ -94,13 +93,12 @@
     components.forEach((component, index) => {
       const y = 27 + index * 38;
       const end = x(component.value);
-      loss += `<g class="loss-component" data-component="${component.label}" data-value="${component.value}"><text x="0" y="${y}" fill="#30343b" font-size="12">${component.label}</text><foreignObject x="0" y="${y + 3}" width="140" height="23"><div xmlns="http://www.w3.org/1999/xhtml" class="chart-math">${component.formula}</div></foreignObject><rect class="loss-bar" x="${Math.min(zero, end)}" y="${y - 10}" width="${Math.abs(end - zero)}" height="15" rx="2" fill="${component.color}"/><text x="515" y="${y + 2}" fill="${component.color}" font-size="12" text-anchor="end">${number(component.value)}</text></g>`;
+      loss += `<g class="loss-component" data-component="${component.label}" data-value="${component.value}"><text x="0" y="${y}" fill="#30343b" font-size="12">${component.label}</text><text x="0" y="${y + 13}" fill="#68717c" font-size="9">${component.formula}</text><rect class="loss-bar" x="${Math.min(zero, end)}" y="${y - 10}" width="${Math.abs(end - zero)}" height="15" rx="2" fill="${component.color}"/><text x="515" y="${y + 2}" fill="${component.color}" font-size="12" text-anchor="end">${number(component.value)}</text></g>`;
     });
     loss += `<line x1="145" y1="126" x2="445" y2="126" stroke="#e3e7ec"/>`;
     const ticks = new Set([minimum, 0, maximum]);
     ticks.forEach(tick => { loss += `<text x="${x(tick)}" y="141" fill="#68717c" font-size="10" text-anchor="middle">${tick.toFixed(2)}</text>`; });
     byId("loss-chart").innerHTML = loss;
-    window.TIBRenderMath(byId("loss-chart"));
     byId("loss-chart").setAttribute("aria-label", `Loss contributions: fitting ${number(result.fittingContribution)}, variance term ${number(result.normalization)}, compression ${number(result.compression)}. Signed axis from ${minimum.toFixed(2)} to ${maximum.toFixed(2)}.`);
 
     const px = logVariance => 52 + (logVariance + 3) / 6 * 440;
@@ -113,9 +111,8 @@
       const logVariance = -3 + index / 10;
       return `${px(logVariance)},${py((alpha - 1) * logVariance)}`;
     }).join(" ");
-    sensitivity += `<text x="52" y="12" fill="#68717c" font-size="10">Direct fitting coefficient</text><text x="492" y="12" fill="#68717c" font-size="9" text-anchor="end">logarithmic axes</text><polyline points="${curve(.5)}" fill="none" stroke="#b8c2ce" stroke-dasharray="4 4" stroke-width="1.5"/><polyline id="sensitivity-curve" points="${curve(values.alpha)}" fill="none" stroke="#2866a6" stroke-width="2.5"/><circle cx="${px(values["log-variance"])}" cy="${py((values.alpha - 1) * values["log-variance"])}" r="4" fill="#2866a6" stroke="#fff" stroke-width="1.5"/><foreignObject x="52" y="140" width="440" height="24"><div xmlns="http://www.w3.org/1999/xhtml" class="chart-math chart-axis-label">Predicted variance \\(\\sigma^2\\) · dashed: \\(\\alpha=0.5\\)</div></foreignObject>`;
+    sensitivity += `<text x="52" y="12" fill="#68717c" font-size="10">Direct fitting coefficient</text><text x="492" y="12" fill="#68717c" font-size="9" text-anchor="end">logarithmic axes</text><polyline points="${curve(.5)}" fill="none" stroke="#b8c2ce" stroke-dasharray="4 4" stroke-width="1.5"/><polyline id="sensitivity-curve" points="${curve(values.alpha)}" fill="none" stroke="#2866a6" stroke-width="2.5"/><circle cx="${px(values["log-variance"])}" cy="${py((values.alpha - 1) * values["log-variance"])}" r="4" fill="#2866a6" stroke="#fff" stroke-width="1.5"/><text x="272" y="151" fill="#68717c" font-size="10" text-anchor="middle">Predicted variance σ² · dashed: α = 0.5</text>`;
     byId("sensitivity-chart").innerHTML = sensitivity;
-    window.TIBRenderMath(byId("sensitivity-chart"));
     byId("sensitivity-chart").setAttribute("aria-label", `Direct fitting coefficient versus variance, on logarithmic axes. Alpha ${values.alpha.toFixed(2)} gives log-log slope ${(values.alpha - 1).toFixed(2)}. Current variance ${number(result.variance)}, coefficient ${number(result.fittingCoefficient)}. All curves pass through variance 1, coefficient 1.`);
   }
   function drawDistribution(result, points) {
@@ -207,12 +204,11 @@
     byId("compression-value").textContent = number(result.compression);
     byId("total-loss").textContent = number(result.total);
     let note;
-    if (Math.abs(values["log-variance"]) < 0.01) note = "At \\(\\sigma^2=1\\), the direct fitting coefficient is 1 for every \\(\\alpha\\).";
-    else if (values.alpha === 1) note = "At \\(\\alpha=1\\), the direct fitting coefficient is constant. Variance still changes the noise, likelihood, and KL.";
-    else if (result.variance > 1) note = "With \\(\\alpha<1\\), higher variance reduces the direct fitting coefficient. This does not determine the complete mask gradient.";
-    else note = "With \\(\\alpha<1\\), lower variance increases the direct fitting coefficient. The mask and KL also contribute to optimization.";
+    if (Math.abs(values["log-variance"]) < 0.01) note = "At σ² = 1, the direct fitting coefficient is 1 for every α.";
+    else if (values.alpha === 1) note = "At α = 1, the direct fitting coefficient is constant. Variance still changes the noise, likelihood, and KL.";
+    else if (result.variance > 1) note = "With α < 1, higher variance reduces the direct fitting coefficient. This does not determine the complete mask gradient.";
+    else note = "With α < 1, lower variance increases the direct fitting coefficient. The mask and KL also contribute to optimization.";
     byId("mechanism-note").textContent = note;
-    window.TIBRenderMath(byId("mechanism-note"));
     drawObjective(result, values);
     drawDistribution(result, points);
   }
@@ -229,25 +225,25 @@
 
   // All fields correspond to the source AttributionConfig; learned quantities are explained separately.
   const parameters = [
-    { key: "beta", group: "objective", default: "0.1", title: "The cost of retaining information", role: "Multiplies the KL compression term. The implemented KL is to a standard normal prior and is averaged over valid feature dimensions during optimization.", effect: "Increasing \\(\\beta\\) makes the same retained-information cost more expensive. It does not directly prescribe a heatmap intensity or guarantee better attribution.", target: "beta" },
-    { key: "alpha", group: "objective", default: "0.5", title: "How variance scales the fitting gradient", role: "The detached weight is \\((\\sigma^2)^\\alpha\\). Combined with the inverse variance in the likelihood, the direct fitting coefficient becomes \\((\\sigma^2)^{\\alpha-1}\\). Valid values are between 0 and 1.", effect: "At \\(\\alpha=0\\), direct fitting scales as \\(\\frac{1}{\\sigma^2}\\). At \\(\\alpha=1\\), this coefficient is constant. The weight is detached, but the variance is still optimized through other terms.", target: "alpha" },
+    { key: "beta", group: "objective", default: "0.1", title: "The cost of retaining information", role: "Multiplies the KL compression term. The implemented KL is to a standard normal prior and is averaged over valid feature dimensions during optimization.", effect: "Increasing β makes the same retained-information cost more expensive. It does not directly prescribe a heatmap intensity or guarantee better attribution.", target: "beta" },
+    { key: "alpha", group: "objective", default: "0.5", title: "How variance scales the fitting gradient", role: "The detached weight is (σ²)^α. Combined with the inverse variance in the likelihood, the direct fitting coefficient becomes (σ²)^(α−1). Valid values are between 0 and 1.", effect: "At α = 0, direct fitting scales as 1/σ². At α = 1, this coefficient is constant. The weight is detached, but the variance is still optimized through other terms.", target: "alpha" },
     { key: "fitting", group: "objective", default: '"cosine"', title: "The cross-modal agreement term", role: "Chooses either cosine similarity minus 1 or negative half the squared distance between normalized prediction and target embeddings. These two forms are mathematically equivalent on unit embeddings.", effect: "This is not raw positive cosine in the TIB likelihood: the offset makes the fitting term consistent with the normalized Gaussian interpretation. Both supported modes express the same fit." },
     { key: "target_layer", group: "bottleneck", default: "9", title: "Where the bottleneck enters the encoder", role: "Selects a zero-based Transformer block index. The vision and text branches each insert their own bottleneck at the chosen layer boundary.", effect: "Changing the layer changes the feature representation being explained. Earlier and later boundaries expose different representations; a later layer is not automatically better.", widget: "layers" },
     { key: "layer_position", group: "bottleneck", default: '"input"', title: "Before or after the selected block", role: "The bottleneck temporarily replaces the input or output of the selected Transformer block. Native attention masks, pooling, and projection operations remain in the forward path.", effect: "With target_layer = 9, input means just before block 9; output means just after it. Changing this setting changes the actual representation being perturbed." },
-    { key: "mask_init", group: "bottleneck", default: "0.0", title: "The starting point of the retention mask", role: "Initializes every trainable mask logit. The retained fraction is \\(h=\\operatorname{sigmoid}(\\text{logit})\\), so the default 0 gives \\(h=0.5\\).", effect: "A larger initial logit starts closer to keeping the feature; a smaller one starts closer to replacing it with noise. The real mask is then optimized feature by feature.", target: "mask-logit" },
+    { key: "mask_init", group: "bottleneck", default: "0.0", title: "The starting point of the retention mask", role: "Initializes every trainable mask logit. The retained fraction is h = sigmoid(logit), so the default 0 gives h = 0.5.", effect: "A larger initial logit starts closer to keeping the feature; a smaller one starts closer to replacing it with noise. The real mask is then optimized feature by feature.", target: "mask-logit" },
     { key: "variance_hidden_dim", group: "bottleneck", default: "128", title: "Capacity of the variance predictor", role: "Sets the hidden width of the per-pair MLP: LayerNorm(D) → Linear(D, H) → GELU → Linear(H, 1). Valid tokens are pooled before predicting one scalar log variance.", effect: "A larger width adds parameters and compute. It does not change the output from a sample-wise scalar into a feature-wise variance, nor does it ensure improved uncertainty estimates." },
-    { key: "min_log_variance", group: "bottleneck", default: "−8.0", title: "The lower numerical bound on variance", role: "Defines the lower log-variance bound in the predictor's smooth tanh mapping. Bounds must satisfy \\(-30\\leq\\mathrm{min}<\\mathrm{max}\\leq30\\).", effect: "A smaller lower bound permits a smaller \\(\\sigma^2\\) and potentially stronger inverse-variance fitting pressure. The mapping is smooth; the bound is not a hard clamp on the prediction." },
+    { key: "min_log_variance", group: "bottleneck", default: "−8.0", title: "The lower numerical bound on variance", role: "Defines the lower log-variance bound in the predictor's smooth tanh mapping. Bounds must satisfy −30 ≤ min < max ≤ 30.", effect: "A smaller lower bound permits a smaller σ² and potentially stronger inverse-variance fitting pressure. The mapping is smooth; the bound is not a hard clamp on the prediction." },
     { key: "max_log_variance", group: "bottleneck", default: "8.0", title: "The upper numerical bound on variance", role: "Defines the upper log-variance bound in the smooth tanh mapping. Variance is exp(log variance) and is broadcast over the feature dimensions of a single input.", effect: "A larger upper bound allows more noise and a wider range of uncertainty scaling. These bounds are numerical choices, not an automatic calibration guarantee." },
     { key: "steps", group: "optimization", default: "10", title: "How long the per-pair bottleneck is fitted", role: "Sets the number of Adam updates for each modality's mask and variance predictor. The pretrained encoder remains frozen.", effect: "More steps allow more optimization and take longer. They do not retrain the encoder and do not guarantee a more faithful explanation." },
     { key: "lr", group: "optimization", default: "0.01", title: "How far each mask update can move", role: "Sets the initial Adam learning rate for the mask. If variance_lr is None, the variance predictor uses this learning rate too.", effect: "A higher rate makes larger updates possible and can change convergence or stability. A selected mask schedule can decay this rate over the per-pair steps.", widget: "schedule" },
     { key: "variance_lr", group: "optimization", default: "None", title: "An independent pace for uncertainty learning", role: "An optional learning rate for the variance predictor's Adam parameter group. None means use lr.", effect: "Setting a separate value changes how quickly the scalar-variance branch can move relative to the mask. Its rate stays constant even when the mask rate is scheduled." },
     { key: "mask_lr_schedule", group: "optimization", default: '"constant"', title: "How the mask learning rate changes over time", role: "Chooses constant, linear, or cosine decay. The first step uses lr; decayed schedules end at lr × mask_lr_final_ratio. A single-step run uses lr.", effect: "A schedule can make later mask updates smaller while the variance predictor keeps its own constant rate. The plot below follows the implementation exactly.", widget: "schedule" },
     { key: "mask_lr_final_ratio", group: "optimization", default: "0.1", title: "The final scale of a decayed mask update", role: "Defines the fraction of the initial mask learning rate reached on the final step of linear or cosine decay. Allowed values are between 0 and 1.", effect: "A lower ratio gives smaller final updates. It has no effect under the constant schedule or when steps = 1.", widget: "schedule" },
-    { key: "mask_adam_beta1", group: "optimization", default: "0.9", title: "Smoothing of the mask's gradient history", role: "Controls the exponential moving average of first-order gradients in the mask's Adam parameter group. Values must be in \\([0,1)\\).",
+    { key: "mask_adam_beta1", group: "optimization", default: "0.9", title: "Smoothing of the mask's gradient history", role: "Controls the exponential moving average of first-order gradients in the mask's Adam parameter group. Values must be in [0, 1).",
       effect: "A larger value gives more memory to previous gradients; a smaller value responds faster to new gradients. It does not change the variance predictor's Adam defaults." },
-    { key: "mask_adam_beta2", group: "optimization", default: "0.999", title: "Smoothing of the mask's squared-gradient history", role: "Controls Adam's second-moment estimate for the mask parameter group. This is an optimizer setting, distinct from the compression coefficient \\(\\beta\\).", effect: "A larger value keeps a longer history of squared gradients. Changing it affects adaptive update scaling; it does not directly alter the bottleneck distribution." },
+    { key: "mask_adam_beta2", group: "optimization", default: "0.999", title: "Smoothing of the mask's squared-gradient history", role: "Controls Adam's second-moment estimate for the mask parameter group. This is an optimizer setting, distinct from the compression coefficient β.", effect: "A larger value keeps a longer history of squared gradients. Changing it affects adaptive update scaling; it does not directly alter the bottleneck distribution." },
     { key: "mask_adam_eps", group: "optimization", default: "1e−8", title: "Numerical stability in the mask optimizer", role: "Adds a small positive constant to Adam's denominator for the mask parameter group. It must be positive and finite.", effect: "A larger epsilon can reduce update magnitudes when estimated gradients are small. This setting affects the optimizer, not the variance bound or the KL formula." },
-    { key: "num_samples", group: "sampling", default: "5", title: "How many noisy representations estimate the fit", role: "Repeats the input K times and draws K bottleneck samples per update to estimate the fitting term by Monte Carlo averaging.", effect: "More samples generally reduce sampling noise at additional compute cost. They do not change \\(q(z\\mid x)\\), the number of real input pairs, or the learned target dimension.", target: "sample-count" },
+    { key: "num_samples", group: "sampling", default: "5", title: "How many noisy representations estimate the fit", role: "Repeats the input K times and draws K bottleneck samples per update to estimate the fitting term by Monte Carlo averaging.", effect: "More samples generally reduce sampling noise at additional compute cost. They do not change q(z | x), the number of real input pairs, or the learned target dimension.", target: "sample-count" },
     { key: "seed", group: "sampling", default: "42", title: "Reproducible initialization and noise", role: "Seeds bottleneck initialization and noise. The original RNG state is restored afterward. With independent branch configs, each modality resets to its own configured seed.", effect: "Changing the seed changes the random draws and can change the fitted attribution. Keeping it fixed makes repeated calls on the same setup reproducible.", target: "sample-seed" },
   ];
   let filter = "all";
@@ -267,7 +263,6 @@
     if (!parameter) return;
     const layers = parameter.widget === "layers" ? `<div class="encoder-strip" role="group" aria-label="Select an illustrative CLIP layer">${Array.from({ length: 12 }, (_, index) => `<button class="${selectedLayer === index ? "is-active" : ""}" data-layer="${index}" aria-pressed="${selectedLayer === index}" aria-label="Zero-based encoder block ${index}">${index}</button>`).join("")}</div><p class="encoder-caption">Selected: block ${selectedLayer}, input boundary. A location illustration, not a new attribution run.</p>` : "";
     byId("parameter-detail").innerHTML = `<p class="eyebrow">${parameter.group} / Configuration</p><h3>${parameter.title}</h3><span class="default-pill"><code>${parameter.key}</code> · default ${parameter.default}</span><p>${parameter.role}</p><div class="detail-callout"><strong>What changes?</strong>${parameter.effect}</div>${layers}${parameter.widget === "schedule" ? scheduleMarkup() : ""}<div class="detail-footer"><span>Source: AttributionConfig</span>${parameter.target ? `<button class="text-button" data-focus="${parameter.target}">Try the control <span aria-hidden="true">↗</span></button>` : ""}</div>`;
-    window.TIBRenderMath(byId("parameter-detail"));
     byId("parameter-detail").querySelectorAll("[data-layer]").forEach(button => button.addEventListener("click", () => { selectedLayer = Number(button.dataset.layer); renderDetail(); byId("parameter-detail").querySelector(`[data-layer="${selectedLayer}"]`).focus(); }));
     byId("parameter-detail").querySelectorAll("[data-schedule]").forEach(button => button.addEventListener("click", () => { selectedSchedule = button.dataset.schedule; renderDetail(); byId("parameter-detail").querySelector(`[data-schedule="${selectedSchedule}"]`).focus(); }));
     byId("parameter-detail").querySelectorAll("[data-focus]").forEach(button => button.addEventListener("click", () => {
